@@ -6,6 +6,8 @@ import java.util.List;
 
 import com.ociweb.pronghorn.struct.StructRegistry;
 import com.ociweb.pronghorn.util.TrieParser;
+import com.ociweb.pronghorn.util.TrieParserReader;
+import com.ociweb.pronghorn.util.TrieParserReaderLocal;
 import com.ociweb.pronghorn.util.parse.JSONFieldMapping;
 import com.ociweb.pronghorn.util.parse.JSONFieldSchema;
 
@@ -102,7 +104,44 @@ public class JSONExtractor implements JSONExtractorUber, JSONExtractorActive {
 		}
 		return this;
 	}
-	
+
+	private static TrieParser parser;
+	private static final int keyToken = 1;
+	private static final int dotToken = 2;
+	private static final int arrayToken = 3;
+
+	static {
+		parser = new TrieParser();
+		parser.setUTF8Value("%b.", keyToken);
+		parser.setUTF8Value(".", dotToken);
+		parser.setUTF8Value("[].", arrayToken);
+	}
+
+	public JSONExtractorActive path(String path) {
+		JSONExtractorActive running = this;
+		TrieParserReader trieParserReader = TrieParserReaderLocal.get();
+		byte[] bytes = (path + ".").getBytes(); // TODO fix for garbage
+		StringBuilder builder = new StringBuilder(); // TODO fix for garbage
+		TrieParserReader.parseSetup(trieParserReader, bytes, 0, bytes.length, Short.MAX_VALUE);
+
+		int token = 0;
+		while ((token = (int)trieParserReader.parseNext(parser)) != -1) {
+			switch(token) {
+				case keyToken:
+					builder.setLength(0);
+					TrieParserReader.capturedFieldBytesAsUTF8(trieParserReader, 0, builder);
+					running = running.key(builder.toString());
+					break;
+				case dotToken:
+					break;
+				case arrayToken:
+					running = running.array();
+					break;
+			}
+		}
+		return running;
+	}
+
 	public JSONExtractorUber completePath(String pathName) { //can only call newPath next
 		
 		activeMapping.setName(pathName);

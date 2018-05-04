@@ -43,7 +43,7 @@ public class JSONParseTest {
 	private final JSONDecoder simpleArrayExtractor = new JSONDecoder()
 			.begin()
 				.element(JSONType.TypeString, true)//set flags for first, last, all, ordered...
-					.key("root").array().key("keyb")
+					.path("root.[].keyb")
 					.asField("b")
 				.element(JSONType.TypeInteger, true)
 					.key("root").key("[]").key("keya")

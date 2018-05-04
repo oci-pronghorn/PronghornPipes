@@ -14,6 +14,11 @@ public abstract class JSONPath<P> {
         return this;
     }
 
+    public JSONPath<P> path(String path) {
+        extractor = extractor.path(path);
+        return this;
+    }
+
     public JSONPath<P> array() {
         extractor = extractor.array();
         return this;
